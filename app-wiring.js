@@ -107,3 +107,173 @@
     setTimeout(function () { btn.textContent = o; }, 1200);
   }
 })();
+
+/* ---------------------------------------------------------------------------
+ * Extended controls: output presets, 3D tilt, watermark, QR code,
+ * custom background, and batch. Injected into #extra so each style's
+ * existing CSS classes (.chip, .slider, .btn, h3, inputs) style them.
+ * ------------------------------------------------------------------------- */
+(function () {
+  'use strict';
+  var engine = window.engine;
+  var host = document.getElementById('extra');
+  if (!engine || !host) return;
+  host.style.display = 'flex';
+  host.style.flexDirection = 'column';
+  host.style.gap = '22px';
+
+  function section(title) {
+    var d = document.createElement('div'); d.className = 'group';
+    var h = document.createElement('h3'); h.textContent = title; d.appendChild(h);
+    host.appendChild(d); return d;
+  }
+  function chipRow(parent) {
+    var g = document.createElement('div'); g.className = 'devices'; parent.appendChild(g); return g;
+  }
+  function chip(text) { var c = document.createElement('div'); c.className = 'chip'; c.textContent = text; return c; }
+  function slider(parent, label, min, max, val, onInput, fmt) {
+    var wrap = document.createElement('div'); wrap.className = 'slider';
+    var lab = document.createElement('label'); lab.className = 'row';
+    var l = document.createElement('span'); l.textContent = label;
+    var v = document.createElement('span'); v.textContent = fmt ? fmt(val) : val;
+    lab.appendChild(l); lab.appendChild(v);
+    var inp = document.createElement('input'); inp.type = 'range';
+    inp.min = min; inp.max = max; inp.value = val;
+    inp.oninput = function () { v.textContent = fmt ? fmt(inp.value) : inp.value; onInput(inp.value); };
+    wrap.appendChild(lab); wrap.appendChild(inp); parent.appendChild(wrap); return inp;
+  }
+  function textInput(parent, placeholder, val, onInput) {
+    var i = document.createElement('input'); i.type = 'text';
+    i.placeholder = placeholder || ''; if (val) i.value = val;
+    i.style.marginTop = '4px';
+    i.oninput = function () { onInput(i.value); };
+    parent.appendChild(i); return i;
+  }
+  function button(parent, text, cls) {
+    var b = document.createElement('button'); b.className = 'btn' + (cls ? ' ' + cls : '');
+    b.textContent = text; b.style.width = '100%'; b.style.justifyContent = 'center';
+    b.style.marginTop = '8px'; parent.appendChild(b); return b;
+  }
+  // exclusive-select chip group; returns {onSelect}
+  function selectGroup(g, items, initialId, onPick) {
+    items.forEach(function (it) {
+      var c = chip(it.label); c.dataset.id = it.id;
+      if (it.id === initialId) c.classList.add('on');
+      c.onclick = function () {
+        g.querySelectorAll('.chip').forEach(function (x) { x.classList.remove('on'); });
+        c.classList.add('on'); onPick(it.id);
+      };
+      g.appendChild(c);
+    });
+  }
+
+  var POS = [
+    { id: 'tl', label: '↖' }, { id: 'tr', label: '↗' },
+    { id: 'bl', label: '↙' }, { id: 'br', label: '↘' }, { id: 'center', label: '●' }
+  ];
+
+  // ---- Output size preset ----
+  var secP = section('Output size');
+  var gP = chipRow(secP);
+  selectGroup(gP, MockupEngine.PRESETS.map(function (p) { return { id: p.id, label: p.label }; }), 'auto',
+    function (id) {
+      var p = MockupEngine.PRESETS.filter(function (x) { return x.id === id; })[0];
+      engine.setOptions({ preset: (p && p.w) ? { w: p.w, h: p.h } : null });
+    });
+
+  // ---- 3D tilt ----
+  var secT = section('3D tilt');
+  slider(secT, 'Angle', -35, 35, 0, function (v) { engine.setOptions({ tilt: +v }); }, function (v) { return v + '°'; });
+
+  // ---- Custom background ----
+  var secB = section('Custom background');
+  var cbWrap = document.createElement('div');
+  cbWrap.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap';
+  var c1 = colorInput('#7c5cff'), c2 = colorInput('#22d3ee');
+  var angleVal = 135;
+  cbWrap.appendChild(c1); cbWrap.appendChild(c2);
+  secB.appendChild(cbWrap);
+  function colorInput(def) {
+    var i = document.createElement('input'); i.type = 'color'; i.value = def;
+    i.style.cssText = 'width:38px;height:34px;border:none;border-radius:8px;cursor:pointer;background:none;padding:0';
+    i.oninput = applyGrad; return i;
+  }
+  slider(secB, 'Gradient angle', 0, 360, angleVal, function (v) { angleVal = +v; applyGrad(); }, function (v) { return v + '°'; });
+  function applyGrad() {
+    engine.setOptions({ background: { type: 'gradient', stops: [c1.value, c2.value], angle: angleVal } });
+  }
+  button(secB, '🖼️ Upload background image', '').onclick = function () {
+    var f = document.createElement('input'); f.type = 'file'; f.accept = 'image/*';
+    f.onchange = function () {
+      if (!f.files[0]) return;
+      var img = new Image();
+      img.onload = function () { engine.setOptions({ background: { type: 'image', img: img } }); };
+      img.src = URL.createObjectURL(f.files[0]);
+    };
+    f.click();
+  };
+
+  // ---- Watermark ----
+  var secW = section('Watermark');
+  var wm = { text: '', position: 'br', opacity: 0.6, size: 0.03 };
+  textInput(secW, 'ข้อความลายน้ำ เช่น @yourname', '', function (v) { wm.text = v; push(); });
+  var gW = chipRow(secW); gW.style.marginTop = '8px';
+  selectGroup(gW, POS, 'br', function (id) { wm.position = id; push(); });
+  slider(secW, 'Opacity', 0, 100, 60, function (v) { wm.opacity = v / 100; push(); }, function (v) { return v + '%'; });
+  slider(secW, 'Size', 2, 8, 3, function (v) { wm.size = v / 100; push(); }, function (v) { return v; });
+  function push() { engine.setOptions({ watermark: wm.text ? Object.assign({}, wm) : null }); }
+
+  // ---- QR code ----
+  var secQ = section('QR code จากลิงก์');
+  var qr = { data: '', position: 'br', size: 0.16, frame: true };
+  textInput(secQ, 'วางลิงก์ เช่น https://...', '', function (v) { qr.data = v.trim(); pushQR(); });
+  var gQ = chipRow(secQ); gQ.style.marginTop = '8px';
+  selectGroup(gQ, POS, 'br', function (id) { qr.position = id; pushQR(); });
+  slider(secQ, 'Size', 8, 40, 16, function (v) { qr.size = v / 100; pushQR(); }, function (v) { return v + '%'; });
+  var gF = chipRow(secQ); gF.style.marginTop = '8px';
+  var frameChip = chip('▢ กรอบขาว'); frameChip.classList.add('on');
+  frameChip.onclick = function () { qr.frame = !qr.frame; frameChip.classList.toggle('on', qr.frame); pushQR(); };
+  gF.appendChild(frameChip);
+  function pushQR() { engine.setOptions({ qr: qr.data ? Object.assign({}, qr) : null }); }
+
+  // ---- Batch ----
+  var secBa = section('Batch หลายรูป');
+  var strip = document.createElement('div');
+  strip.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px';
+  secBa.appendChild(strip);
+  var batch = [];
+  var addBtn = button(secBa, '➕ เพิ่มรูป (เลือกได้หลายไฟล์)', '');
+  addBtn.onclick = function () {
+    var f = document.createElement('input'); f.type = 'file'; f.accept = 'image/*'; f.multiple = true;
+    f.onchange = function () {
+      Array.prototype.forEach.call(f.files, function (file) {
+        var img = new Image();
+        img.onload = function () { batch.push(img); addThumb(img); if (batch.length === 1) engine.setImage(img); };
+        img.src = URL.createObjectURL(file);
+      });
+    };
+    f.click();
+  };
+  function addThumb(img) {
+    var t = document.createElement('div');
+    t.style.cssText = 'width:44px;height:44px;border-radius:8px;background-size:cover;background-position:center;cursor:pointer;border:2px solid rgba(128,128,128,.4)';
+    t.style.backgroundImage = 'url(' + img.src + ')';
+    t.title = 'คลิกเพื่อแก้ไขรูปนี้';
+    t.onclick = function () {
+      strip.querySelectorAll('div').forEach(function (x) { x.style.borderColor = 'rgba(128,128,128,.4)'; });
+      t.style.borderColor = '#7c5cff'; engine.setImage(img);
+    };
+    strip.appendChild(t);
+  }
+  var dlAll = button(secBa, '⬇ Download ทั้งหมด', 'primary');
+  dlAll.onclick = function () {
+    if (!batch.length) { engine.download('mockup.png'); return; }
+    var i = 0;
+    (function next() {
+      if (i >= batch.length) { engine.render(); return; }
+      engine.setImage(batch[i], function () {
+        setTimeout(function () { engine.download('mockup-' + (i + 1) + '.png'); i++; next(); }, 250);
+      });
+    })();
+  };
+})();

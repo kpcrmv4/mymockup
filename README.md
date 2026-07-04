@@ -29,8 +29,13 @@ python3 -m http.server 8000
 
 - 📤 อัพโหลด: คลิก / ลากวาง / วางจาก clipboard (`⌘V` / `Ctrl+V`)
 - 📱 กรอบอุปกรณ์: Browser · iPhone · Android · iPad · MacBook · No-frame
-- 🎨 พื้นหลัง: โปร่งใส / สีทึบ / gradient สำเร็จรูป 8 แบบ
+- 🎨 พื้นหลัง: โปร่งใส / สีทึบ / gradient สำเร็จรูป 16 แบบ + **custom gradient (เลือกสีเอง) + อัพโหลดรูปพื้นหลัง**
 - 🎚️ ปรับ padding, corner radius, shadow
+- 🔄 **3D tilt** — เอียงกรอบเป็นมุม 3D (perspective) สำหรับงาน marketing
+- 📐 **Output presets** — Auto / OG 1200×630 / X 16:9 / IG 1:1 / IG Story / Product Hunt / Square 2K
+- 💧 **Watermark** — ใส่ข้อความลายน้ำ เลือกตำแหน่ง/ความจาง/ขนาด
+- 🔗 **QR code จากลิงก์** — วางลิงก์แล้วสร้าง QR อัตโนมัติ เลือกตำแหน่ง/ขนาด/กรอบขาวได้ (สแกนได้จริง)
+- 🖼️ **Batch** — อัพโหลดหลายรูป ใช้ค่ากรอบเดียวกัน แล้วดาวน์โหลดรวดเดียว
 - 🌐 แก้ URL bar ของกรอบ Browser ได้
 - ⬇️ ดาวน์โหลด PNG หรือ 📋 คัดลอกไป clipboard
 
@@ -41,8 +46,9 @@ index.html            หน้าเลือกสไตล์ (landing)
 style-1-clean.html    UI สไตล์ Clean
 style-2-dark.html     UI สไตล์ Dark Glass
 style-3-playful.html  UI สไตล์ Bold
-mockup-engine.js      เอนจินวาดกรอบ + export (Canvas 2D, ไม่มี dependency)
+mockup-engine.js      เอนจินวาดกรอบ + tilt + watermark + QR + export (Canvas 2D)
 app-wiring.js         wiring คอนโทรลที่ใช้ร่วมกันทั้ง 3 สไตล์
+qrcode.js             ไลบรารีสร้าง QR แบบ offline (MIT, Kazuhiko Arase)
 ```
 
 ## Tech stack
@@ -54,4 +60,4 @@ app-wiring.js         wiring คอนโทรลที่ใช้ร่วม
 
 - ห่อด้วย **Next.js + TypeScript + Tailwind + shadcn/ui** เพื่อ routing/SEO/component สำเร็จรูป
 - deploy บน **Vercel** (static ก็พอ เพราะประมวลผลฝั่ง client)
-- เพิ่ม: preset ขนาด social (X / IG / Product Hunt), batch mode, กรอบเพิ่มเติม, 3D tilt
+- เพิ่ม: กรอบอุปกรณ์เพิ่มเติม, mesh/noise background, ประวัติการแก้ (undo), export ZIP สำหรับ batch
