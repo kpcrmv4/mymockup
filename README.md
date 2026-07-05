@@ -1,63 +1,67 @@
-# 🖼️ Mockup Generator
+# 🖼️ MockMeup
 
 เว็บสำหรับอัพโหลด (หรือวาง `⌘V`) รูปแคปหน้าจอ → ใส่กรอบอุปกรณ์สวยๆ → ดาวน์โหลด PNG ได้ทันที
 ทำงานฝั่งเบราว์เซอร์ 100% — รูปของผู้ใช้ไม่ถูกอัพโหลดขึ้นเซิร์ฟเวอร์เลย
 
-## เริ่มใช้งาน
+สร้างด้วย **Next.js (App Router) + TypeScript** พร้อม deploy บน **Vercel** ได้ทันที
 
-เปิดไฟล์ `index.html` ในเบราว์เซอร์ได้เลย (ไม่ต้องติดตั้งอะไร) แล้วเลือก 1 ใน 3 สไตล์
-
-หากจะเสิร์ฟผ่าน local server:
+## เริ่มพัฒนา
 
 ```bash
-npx serve .
-# หรือ
-python3 -m http.server 8000
+npm install
+npm run dev        # เปิด http://localhost:3000
 ```
 
-## 3 สไตล์ให้ลองเล่น
+Build production:
 
-| ไฟล์ | สไตล์ | คำอธิบาย |
-|------|-------|----------|
-| `style-1-clean.html` | **Clean** | ขาวสะอาด มินิมอล สไตล์ Apple |
-| `style-2-dark.html` | **Dark Glass** | โหมดมืด glassmorphism นีออนม่วง-ฟ้า |
-| `style-3-playful.html` | **Bold / Playful** | neo-brutalist สีจัด กรอบหนา เงาแข็ง |
+```bash
+npm run build && npm start
+```
 
-ทั้งสามใช้เอนจินเดียวกัน (`mockup-engine.js`) และ wiring เดียวกัน (`app-wiring.js`)
+## Deploy บน Vercel
+
+1. push โค้ดขึ้น GitHub
+2. ไป [vercel.com/new](https://vercel.com/new) แล้ว import repo นี้
+3. Vercel ตรวจเจอ Next.js อัตโนมัติ — กด **Deploy** ได้เลย (ไม่ต้องตั้งค่าอะไรเพิ่ม)
+
+ทั้งเว็บประมวลผลฝั่ง client จึงเป็น static/edge-friendly ล้วนๆ
 
 ## ฟีเจอร์
 
+- 🌗 **สลับโหมดมืด/สว่าง** — ดีไซน์หลักเป็น dark glass สลับเป็น light ได้ (จำค่าไว้ใน localStorage)
 - 📤 อัพโหลด: คลิก / ลากวาง / วางจาก clipboard (`⌘V` / `Ctrl+V`)
 - 📱 กรอบอุปกรณ์: Browser · iPhone · Android · iPad · MacBook · No-frame
-- 🎨 พื้นหลัง: โปร่งใส / สีทึบ / gradient สำเร็จรูป 16 แบบ + **custom gradient (เลือกสีเอง) + อัพโหลดรูปพื้นหลัง**
+- 🎨 พื้นหลัง: โปร่งใส / สีทึบ / gradient สำเร็จรูป + custom gradient (เลือกสีเอง) + อัพโหลดรูปพื้นหลัง
 - 🎚️ ปรับ padding, corner radius, shadow
-- 🔄 **3D tilt** — เอียงกรอบเป็นมุม 3D (perspective) สำหรับงาน marketing
+- 🔄 **3D tilt** — เอียงกรอบเป็นมุม 3D (perspective)
 - 📐 **Output presets** — Auto / OG 1200×630 / X 16:9 / IG 1:1 / IG Story / Product Hunt / Square 2K
 - 💧 **Watermark** — ใส่ข้อความลายน้ำ เลือกตำแหน่ง/ความจาง/ขนาด
-- 🔗 **QR code จากลิงก์** — วางลิงก์แล้วสร้าง QR อัตโนมัติ เลือกตำแหน่ง/ขนาด/กรอบขาวได้ (สแกนได้จริง)
+- 🔗 **QR code จากลิงก์** — วางลิงก์แล้วสร้าง QR อัตโนมัติ (สแกนได้จริง, offline)
 - 🖼️ **Batch** — อัพโหลดหลายรูป ใช้ค่ากรอบเดียวกัน แล้วดาวน์โหลดรวดเดียว
-- 🌐 แก้ URL bar ของกรอบ Browser ได้
+- 📱 **Responsive** — บนมือถือ preview ขึ้นบน คอนโทรลเลื่อนอ่านด้านล่าง
 - ⬇️ ดาวน์โหลด PNG หรือ 📋 คัดลอกไป clipboard
 
-## โครงสร้างไฟล์
+## โครงสร้างโปรเจกต์
 
 ```
-index.html            หน้าเลือกสไตล์ (landing)
-style-1-clean.html    UI สไตล์ Clean
-style-2-dark.html     UI สไตล์ Dark Glass
-style-3-playful.html  UI สไตล์ Bold
-mockup-engine.js      เอนจินวาดกรอบ + tilt + watermark + QR + export (Canvas 2D)
-app-wiring.js         wiring คอนโทรลที่ใช้ร่วมกันทั้ง 3 สไตล์
-qrcode.js             ไลบรารีสร้าง QR แบบ offline (MIT, Kazuhiko Arase)
+app/
+  layout.tsx          root layout + theme init (กัน flash ตอนโหลด)
+  page.tsx            หน้าเดียว render <MockupStudio/>
+  globals.css         ธีม (dark เป็นค่าเริ่มต้น + light ผ่าน [data-theme])
+components/
+  MockupStudio.tsx    UI + wiring คอนโทรลทั้งหมด (client component)
+  ThemeToggle.tsx     ปุ่มสลับมืด/สว่าง
+lib/
+  mockup-engine.ts    เอนจินวาดกรอบ + tilt + watermark + QR + export (Canvas 2D)
+  qrcode.js           ไลบรารีสร้าง QR แบบ offline (MIT, Kazuhiko Arase)
+public/
+  logo.png            โลโก้ MockMeup
 ```
 
 ## Tech stack
 
+- **Next.js 15 + React 19 + TypeScript** — App Router, static-prerendered
 - **Canvas 2D API** — วาดกรอบอุปกรณ์และ export เป็น PNG ฝั่ง client
-- **Vanilla JS + HTML/CSS** — ไม่มี build step, ไม่มี dependency, เปิดไฟล์ใช้ได้เลย
+- **Plain CSS + CSS variables** — ธีมมืด/สว่างและ responsive โดยไม่พึ่ง UI framework
 
-### แผนต่อยอด (ถ้าอยากขยับเป็น production)
-
-- ห่อด้วย **Next.js + TypeScript + Tailwind + shadcn/ui** เพื่อ routing/SEO/component สำเร็จรูป
-- deploy บน **Vercel** (static ก็พอ เพราะประมวลผลฝั่ง client)
-- เพิ่ม: กรอบอุปกรณ์เพิ่มเติม, mesh/noise background, ประวัติการแก้ (undo), export ZIP สำหรับ batch
+> เอนจินวาดภาพทั้งหมดทำงานฝั่ง browser เท่านั้น — ไม่มี API/เซิร์ฟเวอร์รับรูป
