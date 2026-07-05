@@ -436,24 +436,33 @@ canvas.preview {
     grid-template-columns: 1fr;
     height: auto;
     min-height: 100vh;
-    padding: 12px;
-    gap: 12px;
+    padding: 10px;
+    gap: 10px;
   }
-  /* preview first on mobile, controls below */
+  /* Preview pins to the top and stays visible while the controls scroll,
+     so adjusting a value updates the mockup in view — no scrolling back. */
   .stage {
     order: -1;
-    overflow: visible;
-    min-height: 60vh;
+    position: sticky;
+    top: 8px;
+    z-index: 6;
+    height: 44vh;
+    max-height: 44vh;
+    overflow: hidden;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
   }
   .side {
     overflow-y: visible;
   }
   .canvas-wrap {
-    padding: 20px;
-    min-height: 300px;
+    padding: 14px;
+    min-height: 0;
   }
   .topbar {
-    padding: 12px 14px;
+    padding: 10px 14px;
+  }
+  .hint {
+    padding: 0 10px 8px;
   }
 }
 

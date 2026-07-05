@@ -304,15 +304,19 @@ export class MockupEngine {
       sy = oy + bezel;
     this._drawScreen(ctx, sx, sy, s.w, s.h, this.opts.radius);
     if (kind === "android") {
-      const cr = Math.max(5, bezel * 0.45);
+      // small punch-hole camera, hugging the top edge
+      const cr = Math.max(4, bezel * 0.34);
       ctx.beginPath();
-      ctx.arc(sx + s.w / 2, sy + bezel * 0.9, cr, 0, Math.PI * 2);
+      ctx.arc(sx + s.w / 2, sy + bezel * 0.7, cr, 0, Math.PI * 2);
       ctx.fillStyle = "#000";
       ctx.fill();
     } else {
-      const iw = Math.round(s.w * 0.32),
-        ih = Math.round(bezel * 1.15);
-      roundRect(ctx, sx + (s.w - iw) / 2, sy + bezel * 0.55, iw, ih, ih / 2);
+      // compact Dynamic Island, floating near the top edge so it does
+      // not cover the screenshot content
+      const iw = Math.round(s.w * 0.26),
+        ih = Math.round(bezel * 0.82),
+        ny = sy + Math.round(bezel * 0.4);
+      roundRect(ctx, sx + (s.w - iw) / 2, ny, iw, ih, ih / 2);
       ctx.fillStyle = "#000";
       ctx.fill();
     }
